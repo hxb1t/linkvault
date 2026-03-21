@@ -7,18 +7,23 @@ import (
 )
 
 type Config struct {
-	Env  string
-	Port string
+	Env          string
+	Port         string
+	DatabasePath string
 }
 
 func Load() Config {
 	_ = loadEnvFromFile(".env")
 	return Config{
-		Env:  getEnv("ENV", "dev"),
-		Port: getEnv("PORT", "8080"),
+		Env:          getEnv("ENV", "dev"),
+		Port:         getEnv("PORT", "8080"),
+		DatabasePath: getEnv("DB_PATH", "./data/linkvault.db"),
 	}
 }
 
+// Function to get env value
+// this function accept two argument, which key for env key
+// and the fallback value if the env is not exist
 func getEnv(key string, fallback string) string {
 	if val := os.Getenv(key); val != "" {
 		return val
@@ -27,12 +32,10 @@ func getEnv(key string, fallback string) string {
 	return fallback
 }
 
-/*
- * Function to read .env file
- * the env key format should be like this:
- * SERVER_PORT=8080
- * API_CONTEXT=/api
- */
+// Function to read .env file, this function accept file path as argument
+// and the env key format should be like this:
+// SERVER_PORT=8080
+// API_CONTEXT=/api
 func loadEnvFromFile(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
