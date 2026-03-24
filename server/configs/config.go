@@ -2,22 +2,32 @@ package configs
 
 import (
 	"bufio"
+	"log/slog"
 	"os"
+	"strconv"
 	"strings"
 )
 
 type Config struct {
-	Env          string
-	Port         string
-	DatabasePath string
+	Env           string
+	Port          string
+	DatabasePath  string
+	RedisHost     string
+	RedisDatabase int
 }
 
 func Load() Config {
-	_ = loadEnvFromFile(".env")
+	err := loadEnvFromFile("./configs/.env")
+	if err != nil {
+		slog.Error("failed to read env", "error", err)
+	}
+	redisDb, _ := strconv.Atoi(getEnv("REDIS_DATABASE", "0"))
 	return Config{
-		Env:          getEnv("ENV", "dev"),
-		Port:         getEnv("PORT", "8080"),
-		DatabasePath: getEnv("DB_PATH", "./data/linkvault.db"),
+		Env:           getEnv("ENV", "dev"),
+		Port:          getEnv("PORT", "8080"),
+		DatabasePath:  getEnv("DB_PATH", ".linkvault.db"),
+		RedisHost:     getEnv("REDIS_HOST", "localhots:6379"),
+		RedisDatabase: redisDb,
 	}
 }
 

@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Init SQLite Database Connection
-	db := database.Connect(config.DatabasePath)
+	db := database.ConnectDatabase(config.DatabasePath)
 	// Close the database connection once the application server is shutting down
 	defer db.Close()
 

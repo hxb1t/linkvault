@@ -1,12 +1,17 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"log/slog"
+	"time"
+
+	_ "github.com/glebarez/go-sqlite"
+	"github.com/redis/go-redis/v9"
 )
 
-func Connect(path string) *sql.DB {
-	db, err := sql.Open("sqlite3", path)
+func ConnectDatabase(path string) *sql.DB {
+	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		slog.Error("error when open db connection", "error", err)
 	}
@@ -23,4 +28,23 @@ func Connect(path string) *sql.DB {
 
 	slog.Info("connected to db", "db path", path)
 	return db
+}
+
+func ConnectRedis(addr, password string, database int) *redis.Client {
+	client := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: password,
+		DB:       database,
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := client.Ping(ctx).Err(); err != nil {
+		slog.Error("redis connection failed", "error", err, "address", addr)
+		panic("cannot connect to redis: " + err.Error())
+	}
+
+	slog.Info("conncted to redis", "addr", addr)
+	return client
 }
