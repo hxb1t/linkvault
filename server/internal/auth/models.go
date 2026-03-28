@@ -12,6 +12,12 @@ type UserEntity struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
+type LoginResponse struct {
+	AccessToken  string `json:"access_token"`
+	ExpTime      int    `json:"exp_time"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 type SignupRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`

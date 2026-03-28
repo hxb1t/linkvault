@@ -10,5 +10,7 @@ var (
 	ErrForbidden       = errors.New("forbidden")
 	ErrInternalServer  = errors.New("internal server error")
 	ErrUserNotFound    = errors.New("user data not found")
+	ErrExecuteQuery    = errors.New("error execute query")
+	ErrInvalidPassword = errors.New("invalid password")
 	ErrProfileNotFound = errors.New("profile data not found")
 )

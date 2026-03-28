@@ -2,22 +2,22 @@ package auth
 
 import "net/http"
 
-type AuthHandler struct {
-	AuthUsecase    AuthUsecase
-	AuthRepository AuthRepository
+type Handler struct {
+	Usecase    Usecase
+	Repository Repository
 }
 
-func NewAuthHandler(au AuthUsecase, ar AuthRepository) *AuthHandler {
-	return &AuthHandler{
-		AuthUsecase:    au,
-		AuthRepository: ar,
+func NewAuthHandler(usecase Usecase, repository Repository) *Handler {
+	return &Handler{
+		Usecase:    usecase,
+		Repository: repository,
 	}
 }
 
-func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	return
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+
 }
 
-func (ah *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
-	return
+func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
+
 }

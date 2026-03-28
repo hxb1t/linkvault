@@ -2,12 +2,25 @@ package utils
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/hxb1t/linkvault/internal/domain"
 )
 
-func CreateJWT(jwtClaims jwt.MapClaims, secretKey string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims)
+func CreateJWT(userId int, username string, expDurationInSeconds int, secretKey string) (string, error) {
+	expDuration := time.Duration(expDurationInSeconds) * time.Second
+	claims := domain.AuthClaims{
+		UserId:   userId,
+		Username: username,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expDuration)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+	slog.Debug("jwt claims", "claims", claims)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(secretKey)
 	if err != nil {
 		return "", err
@@ -16,7 +29,7 @@ func CreateJWT(jwtClaims jwt.MapClaims, secretKey string) (string, error) {
 	return tokenString, err
 }
 
-func ValidateJWT(tokenString string, secretKey string) (jwt.MapClaims, error) {
+func ValidateJWT(tokenString string, secretKey string) (*domain.AuthClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		return []byte(secretKey), nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodES256.Alg()}))
@@ -26,9 +39,10 @@ func ValidateJWT(tokenString string, secretKey string) (jwt.MapClaims, error) {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		return claims, nil
+	claims, ok := token.Claims.(*domain.AuthClaims)
+	if !ok || !token.Valid {
+		return nil, domain.ErrUnauthorized
 	}
 
-	return nil, err
+	return claims, err
 }
