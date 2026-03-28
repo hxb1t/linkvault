@@ -30,7 +30,7 @@ func ConnectDatabase(path string) *sql.DB {
 	return db
 }
 
-func ConnectRedis(addr, password string, database int) *redis.Client {
+func ConnectRedis(addr, password string, database int) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password,
@@ -42,9 +42,9 @@ func ConnectRedis(addr, password string, database int) *redis.Client {
 
 	if err := client.Ping(ctx).Err(); err != nil {
 		slog.Error("redis connection failed", "error", err, "address", addr)
-		panic("cannot connect to redis: " + err.Error())
+		return nil, err
 	}
 
 	slog.Info("conncted to redis", "addr", addr)
-	return client
+	return client, nil
 }

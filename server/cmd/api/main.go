@@ -12,16 +12,16 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
-	config := configs.Load()
+	env := configs.LoadEnv()
 
 	// File server for static web applications
-	if strings.EqualFold(config.Env, "dev") {
+	if strings.EqualFold(env.Env, "dev") {
 		webPage := http.FileServer(http.Dir("../client"))
 		mux.Handle("/", webPage)
 	}
 
-	// Init SQLite Database Connection
-	db := database.ConnectDatabase(config.DatabasePath)
+	// Init SQLite Database connection
+	db := database.ConnectDatabase(env.DatabasePath)
 	// Close the database connection once the application server is shutting down
 	defer db.Close()
 
@@ -31,8 +31,14 @@ func main() {
 		return
 	}
 
-	// Initilize routes
-	auth.NewAuthRoute(mux, db)
+	// Init Redis connection
+	redis, err := database.ConnectRedis(env.RedisHost, env.RedisPassword, env.RedisDatabase)
+	if err != nil {
+		panic("failed connect to redis: " + err.Error())
+	}
 
-	http.ListenAndServe(":"+config.Port, mux)
+	// Initilize routes
+	auth.NewAuthRoute(mux, db, redis, env)
+
+	http.ListenAndServe(":"+env.Port, mux)
 }
