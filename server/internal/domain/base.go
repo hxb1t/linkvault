@@ -9,8 +9,6 @@ import (
 
 const HEADER_CONTENT_TYPE = "Content-Type"
 const HEADER_APPLICATION_JSON = "application/json"
-const UNAUTHORIZED = "unauthorized"
-const INTERNAL_SERVER_ERROR = "internal server error"
 const SUCCESS = "success"
 
 type AuthClaims struct {

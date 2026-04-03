@@ -13,4 +13,5 @@ var (
 	ErrExecuteQuery    = errors.New("error execute query")
 	ErrInvalidPassword = errors.New("invalid password")
 	ErrProfileNotFound = errors.New("profile data not found")
+	ErrInvalidRequest  = errors.New("invalid request")
 )

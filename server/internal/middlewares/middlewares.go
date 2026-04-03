@@ -28,6 +28,7 @@ func Auth(secretKey string) func(http.Handler) http.Handler {
 			if err != nil {
 				slog.Error("failed when validating jwt", "error", err)
 				domain.Error(w, r, http.StatusUnauthorized, "Unauhtorized", domain.ErrUnauthorized)
+				return
 			}
 
 			ctx := SetContextClaims(r.Context(), claims)

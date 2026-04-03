@@ -21,7 +21,7 @@ func CreateJWT(userId int, username string, expDurationInSeconds int, secretKey 
 	slog.Debug("jwt claims", "claims", claims)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(secretKey)
+	tokenString, err := token.SignedString([]byte(secretKey))
 	if err != nil {
 		return "", err
 	}
@@ -32,7 +32,7 @@ func CreateJWT(userId int, username string, expDurationInSeconds int, secretKey 
 func ValidateJWT(tokenString string, secretKey string) (*domain.AuthClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		return []byte(secretKey), nil
-	}, jwt.WithValidMethods([]string{jwt.SigningMethodES256.Alg()}))
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 	if err != nil {
 		slog.Error("failed when parse user token", "error", err)

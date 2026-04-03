@@ -6,10 +6,9 @@ import (
 	"net/http"
 )
 
-func Error(w http.ResponseWriter, r *http.Request, code int, message string, err error) {
+func Error(w http.ResponseWriter, r *http.Request, code int, err error) {
 	if err != nil {
-		slog.ErrorContext(r.Context(), message,
-			"error", err.Error(),
+		slog.ErrorContext(r.Context(), err.Error(),
 			"method", r.Method,
 			"path", r.URL.Path,
 			"code", code,
@@ -20,18 +19,18 @@ func Error(w http.ResponseWriter, r *http.Request, code int, message string, err
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(ApiError{
 		Code:    code,
-		Message: message,
+		Message: err.Error(),
 	})
 }
 
-func BadRequest(w http.ResponseWriter, r *http.Request, message string, err error) {
-	Error(w, r, http.StatusBadRequest, message, err)
+func BadRequest(w http.ResponseWriter, r *http.Request, err error) {
+	Error(w, r, http.StatusBadRequest, err)
 }
 
-func Unauthorized(w http.ResponseWriter, r *http.Request) {
-	Error(w, r, http.StatusUnauthorized, UNAUTHORIZED, nil)
+func Unauthorized(w http.ResponseWriter, r *http.Request, err error) {
+	Error(w, r, http.StatusUnauthorized, err)
 }
 
 func InternalError(w http.ResponseWriter, r *http.Request, err error) {
-	Error(w, r, http.StatusInternalServerError, INTERNAL_SERVER_ERROR, err)
+	Error(w, r, http.StatusInternalServerError, err)
 }

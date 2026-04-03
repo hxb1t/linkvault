@@ -9,19 +9,22 @@ import (
 )
 
 type Env struct {
-	Env            string
-	Port           string
-	DatabasePath   string
-	RedisHost      string
-	RedisPassword  string
-	RedisDatabase  int
-	JWTExpTime     int
-	JWTSecret      string
-	UserSessionTTL int
+	Env                     string
+	Port                    string
+	DatabasePath            string
+	RedisHost               string
+	RedisPassword           string
+	RedisDatabase           int
+	JWTExpTime              int
+	JWTSecret               string
+	UserSessionTTL          int
+	ContextPath             string
+	MaxDbOpenConnectionPool int
+	MaxDbIdleConnectionPool int
 }
 
 func LoadEnv() Env {
-	err := loadEnvFromFile("./configs/.env")
+	err := loadEnvFromFile(getEnv("ENV_PATH", "./configs/.env"))
 	if err != nil {
 		slog.Error("failed to read env", "error", err)
 	}
@@ -29,17 +32,22 @@ func LoadEnv() Env {
 	redisDb, _ := strconv.Atoi(getEnv("REDIS_DATABASE", "0"))
 	jwtExpTime, _ := strconv.Atoi(getEnv("JWT_EXP_TIME_SECOND", "900"))
 	userSessionTTL, _ := strconv.Atoi(getEnv("USER_SESSION_TTL", "900"))
+	maxDbOpenConn, _ := strconv.Atoi(getEnv("DB_MAX_OPEN_CONNECTION_POOL", "1"))
+	maxDbIdleConn, _ := strconv.Atoi(getEnv("DB_MAX_IDLE_CONNECTION_POOL", "2"))
 
 	return Env{
-		Env:            getEnv("ENV", "dev"),
-		Port:           getEnv("PORT", "8080"),
-		DatabasePath:   getEnv("DB_PATH", ".linkvault.db"),
-		RedisHost:      getEnv("REDIS_HOST", "localhots:6379"),
-		RedisDatabase:  redisDb,
-		RedisPassword:  getEnv("REDIS_PASSWORD", ""),
-		JWTExpTime:     jwtExpTime,
-		JWTSecret:      getEnv("JWT_SECRET_KEY", "Js0nW3bT0K3n"),
-		UserSessionTTL: userSessionTTL,
+		Env:                     getEnv("ENV", "dev"),
+		Port:                    getEnv("PORT", "8080"),
+		DatabasePath:            getEnv("DB_PATH", ".linkvault.db"),
+		RedisHost:               getEnv("REDIS_HOST", "localhost:6379"),
+		RedisDatabase:           redisDb,
+		RedisPassword:           getEnv("REDIS_PASSWORD", ""),
+		JWTExpTime:              jwtExpTime,
+		JWTSecret:               getEnv("JWT_SECRET_KEY", "Js0nW3bT0K3n"),
+		UserSessionTTL:          userSessionTTL,
+		ContextPath:             getEnv("CONTEXT_PATH", "/linkvault"),
+		MaxDbOpenConnectionPool: maxDbOpenConn,
+		MaxDbIdleConnectionPool: maxDbIdleConn,
 	}
 }
 

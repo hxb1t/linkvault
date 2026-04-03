@@ -10,7 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func ConnectDatabase(path string) *sql.DB {
+func ConnectDatabase(path string, maxOpenPoolConnection, maxIdlePoolConnection int) *sql.DB {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		slog.Error("error when open db connection", "error", err)
@@ -20,7 +20,10 @@ func ConnectDatabase(path string) *sql.DB {
 	db.Exec("PRAGMA busy_timeout=5000")
 	db.Exec("PRAGMA foreign_keys=ON")
 
-	db.SetMaxOpenConns(1)
+	db.SetMaxOpenConns(maxOpenPoolConnection)
+	db.SetMaxIdleConns(maxIdlePoolConnection)
+	db.SetConnMaxLifetime(0)
+	db.SetConnMaxIdleTime(0)
 
 	if err := db.Ping(); err != nil {
 		slog.Error("error when trying to ping into db", "error", err)

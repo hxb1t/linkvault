@@ -49,16 +49,16 @@ func (au *Usecase) CreateUser(ctx context.Context, request SignupRequest) error 
 
 func (au *Usecase) Login(ctx context.Context, request LoginRequest) (LoginResponse, error) {
 	userSessionRedisKey := domain.UserSessionKey(request.Username)
-	userSessionCache, err := au.Redis.Get(ctx, userSessionRedisKey).Result()
+	existingUserSessionCache, err := au.Redis.Get(ctx, userSessionRedisKey).Result()
 	response := LoginResponse{}
 
-	if err == nil && len(userSessionCache) > 0 {
+	if err == nil && len(existingUserSessionCache) > 0 {
 		slog.Info("session is still alive", "username", request.Username)
-		if err = json.Unmarshal([]byte(userSessionCache), &response); err != nil {
-			slog.Error("failed when read user session cache value", "value", userSessionCache)
+		if err = json.Unmarshal([]byte(existingUserSessionCache), &response); err != nil {
+			slog.Error("failed when read user session cache value", "value", existingUserSessionCache)
 			return LoginResponse{}, err
 		}
-		slog.Debug("success read user session", "username", request.Username, "value", userSessionCache)
+		slog.Debug("success read user session", "username", request.Username, "value", existingUserSessionCache)
 		return response, nil
 	}
 
@@ -68,7 +68,7 @@ func (au *Usecase) Login(ctx context.Context, request LoginRequest) (LoginRespon
 		return LoginResponse{}, err
 	}
 
-	if err := utils.CheckPassword(request.HashedPassword, existingUser.Password); err != nil {
+	if err := utils.CheckPassword(existingUser.Password, request.Password); err != nil {
 		slog.Error("invalid password", "username", request.Username)
 		return LoginResponse{}, domain.ErrInvalidPassword
 	}
@@ -86,7 +86,13 @@ func (au *Usecase) Login(ctx context.Context, request LoginRequest) (LoginRespon
 		ExpTime:      au.Env.JWTExpTime,
 	}
 
-	err = au.Redis.Set(ctx, userSessionRedisKey, response, userSessionTtl).Err()
+	userSessionCache, err := json.Marshal(response)
+	if err != nil {
+		slog.Error("failed to marshalling user session cache", "error", err)
+		return LoginResponse{}, domain.ErrInternalServer
+	}
+
+	err = au.Redis.Set(ctx, userSessionRedisKey, string(userSessionCache), userSessionTtl).Err()
 	if err != nil {
 		slog.Warn("failed to store user session cache", "key", userSessionRedisKey)
 	}

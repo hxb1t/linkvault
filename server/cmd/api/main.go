@@ -14,6 +14,9 @@ func main() {
 	mux := http.NewServeMux()
 	env := configs.LoadEnv()
 
+	apiMux := http.NewServeMux()
+	mux.Handle(env.ContextPath+"/", http.StripPrefix(env.ContextPath, apiMux))
+
 	// File server for static web applications
 	if strings.EqualFold(env.Env, "dev") {
 		webPage := http.FileServer(http.Dir("../client"))
@@ -21,7 +24,7 @@ func main() {
 	}
 
 	// Init SQLite Database connection
-	db := database.ConnectDatabase(env.DatabasePath)
+	db := database.ConnectDatabase(env.DatabasePath, env.MaxDbOpenConnectionPool, env.MaxDbIdleConnectionPool)
 	// Close the database connection once the application server is shutting down
 	defer db.Close()
 
@@ -38,7 +41,8 @@ func main() {
 	}
 
 	// Initilize routes
-	auth.NewAuthRoute(mux, db, redis, env)
+	auth.NewAuthRoute(apiMux, db, redis, env)
 
+	slog.Info("linkvault service is ready to serve", "port", env.Port, "context path", env.ContextPath)
 	http.ListenAndServe(":"+env.Port, mux)
 }
